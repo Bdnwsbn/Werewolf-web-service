@@ -57,9 +57,7 @@ public class MongoPlayerDAO implements IPlayerDAO {
 		return coll;
 	}
 	
-	// This method is necessary since we are using a BasicDBObject to query. 
-	// Since it's a BasicDBObject, we can convert it to a Player object and set the player attributes
-	// based on values stored in MongoDB for the particular player
+
 	private Player convertFromObject(DBObject object) {
 		Player player = new Player();
 		
@@ -97,20 +95,17 @@ public class MongoPlayerDAO implements IPlayerDAO {
 	public void createPlayer(Player player) {
 		DBCollection collection = getCollection();
 		
-		// find User to add Player object to via ObjectId
-		BasicDBObject query = new BasicDBObject();
-		query.put("userId", player.getUserId());
-		
 		// Create Player Object for User
 		BasicDBObject playerDoc = new BasicDBObject();
-		playerDoc.append("playerName", player);
+		playerDoc.append("id", player);
+		playerDoc.append("userId", player.getUserId());
 		playerDoc.append("werewolf", player.isWerewolf());
 		playerDoc.append("isDead", player.isDead());
 		playerDoc.append("lat", player.getLat());
 		playerDoc.append("lng", player.getLng());
 		playerDoc.append("votedAgainst", player.getVotedAgainst());
 		
-		collection.update(query, playerDoc);
+		collection.insert(playerDoc);
 	}
 	
 	 

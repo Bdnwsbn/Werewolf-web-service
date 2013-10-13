@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import edu.wm.werewolf.dao.IUserDAO;
+import edu.wm.werewolf.exceptions.UserAlreadyExistsException;
 import edu.wm.werewolf.model.MyUser;
 
 @Service
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserDetailsService, IUserService{
 	
 	@Override
 	public void createUser(String username, String password, 
-			String firstname, String lastname){
+			String firstname, String lastname) throws UserAlreadyExistsException{
 		
 		Collection<GrantedAuthority> authorities = new ArrayList<>();
 		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));

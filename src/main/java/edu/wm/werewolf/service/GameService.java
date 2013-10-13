@@ -34,7 +34,6 @@ public class GameService {
 	@Autowired private IGameDAO gameDao;
 	
 
-	// Make someone an Admin?
 	public void restartGame(){
 		logger.info("Game is restarting");
 		
@@ -67,7 +66,8 @@ public class GameService {
 		// Create a new game
 		Date date = new Date();
 		Game game = gameDao.getCurrentGame();
-		Game newGame = new Game(game.getDayNightFreq(), date);
+		Game newGame = new Game(game.getId(), date, game.getIsNight(), game.getDayNightFreq(),
+								game.getIsRunning(), game.getTimer());
 		gameDao.createGame(newGame);
 	}
 	
@@ -81,31 +81,36 @@ public class GameService {
 	}
 	
 
+	
 	public List<Player> getAllNearby(Player werewolf, List<Player> playersNearby) 
 										throws NoPlayerFoundException {
 		
-		// Werewolf's Location
-		GPSLocation wwLoc = new GPSLocation(werewolf.getLat(), werewolf.getLng());
-		wwLoc = reportCurrentPosition(werewolf.getUserId(), wwLoc);
-		
-		// Search for nearby alive townspeople
-		List<Player> players = getAllAlive();
-		for (Player p : players){
-			if (!p.isWerewolf()) {
-				// Get current position of townsperson
-				GPSLocation pLoc = new GPSLocation(p.getLat(), p.getLng());
-				pLoc = reportCurrentPosition(p.getUserId(),pLoc);
-				
-				// Check to see within radius of Werewolf
-				double distance = Math.sqrt( (wwLoc.getLat() - pLoc.getLat())*
-						(wwLoc.getLat() - pLoc.getLat())
-						+ (wwLoc.getLng() - pLoc.getLng())*
-						(wwLoc.getLng() - pLoc.getLng()));
-				
-				// Scent Radius (2000) Kill Radius (15000)
-				if (distance <= 2000)
-					playersNearby.add(p);
+		if (werewolf.isWerewolf()) {
+			
+			// Werewolf's Location
+			GPSLocation wwLoc = new GPSLocation(werewolf.getLat(), werewolf.getLng());
+			wwLoc = reportCurrentPosition(werewolf.getUserId(), wwLoc);
+			
+			// Search for nearby alive townspeople
+			List<Player> players = getAllAlive();
+			for (Player p : players){
+				if (!p.isWerewolf()) {
+					// Get current position of townsperson
+					GPSLocation pLoc = new GPSLocation(p.getLat(), p.getLng());
+					pLoc = reportCurrentPosition(p.getUserId(),pLoc);
+					
+					// Check to see within radius of Werewolf
+					double distance = Math.sqrt( (wwLoc.getLat() - pLoc.getLat())*
+							(wwLoc.getLat() - pLoc.getLat())
+							+ (wwLoc.getLng() - pLoc.getLng())*
+							(wwLoc.getLng() - pLoc.getLng()));
+					
+					// Scent Radius (2000) Kill Radius (15000)
+					if (distance <= 2000)
+						playersNearby.add(p);
+				}
 			}
+			return playersNearby;
 		}
 		return playersNearby;
 	}
@@ -135,7 +140,7 @@ public class GameService {
 		
 		Game game = gameDao.getCurrentGame();
 		
-		if (killer.isWerewolf() && game.isNight()){
+		if (killer.isWerewolf() && game.getIsNight()){
 			GPSLocation killerLoc = new GPSLocation(killer.getLat(), killer.getLng());
 			GPSLocation victimLoc = new GPSLocation(victim.getLat(), victim.getLng());
 			victimLoc = reportCurrentPosition(victim.getUserId(), victimLoc);
@@ -186,7 +191,7 @@ public class GameService {
 		Player playerVoter = playerDao.getPlayerById(voter);
 		Player playerVotee = playerDao.getPlayerById(votee);
 		
-		if (!game.isNight() && !playerVoter.isDead() && playerVoter.getVotedAgainst() == null){
+		if (!game.getIsNight() && !playerVoter.isDead() && playerVoter.getVotedAgainst() == null){
 			List<Player> votables = getAllVotable();
 			if (votables.contains(playerVotee)) {
 				

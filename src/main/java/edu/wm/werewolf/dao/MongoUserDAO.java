@@ -8,6 +8,9 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoAction;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.mongodb.BasicDBObject;
@@ -19,6 +22,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 
 import edu.wm.werewolf.exceptions.NoUserFoundException;
+import edu.wm.werewolf.exceptions.UserAlreadyExistsException;
 import edu.wm.werewolf.model.MyUser;
 import edu.wm.werewolf.model.Player;
 import edu.wm.werewolf.model.User;
@@ -51,18 +55,21 @@ public class MongoUserDAO implements IUserDAO {
 	
 // ****Error here: overwrites username, and password to null!!!1****
 	private MyUser convertFromObject(DBObject o) {
-		// Null fields = firstName, lastName, username, password,  imageURL, Boolean isAdmin, 
-		// Collection<GrantedAuthority> authorities
 		MyUser u = new MyUser(null, null, null, null, null, null, null);
 		
 		ObjectId streamid = (ObjectId) o.get("_id");
 		
 		String id = streamid.toString();
+		
 		u.setId(id);
 		u.setFirstName((String) o.get("firstName"));
 		u.setLastName((String) o.get("lastName"));
+		u.setUsername((String) o.get("username"));
+		u.setPassword((String) o.get("password"));
 		u.setImageURL((String) o.get("imageURL"));
 		u.setIsAdmin((Boolean) o.get("isAdmin"));
+		u.setAuthorities((Collection<GrantedAuthority>) o.get("authorities"));
+		
 		return u;
 	}
 	
@@ -102,17 +109,24 @@ public class MongoUserDAO implements IUserDAO {
 		return u;
 	}
 	
-	// Change to coll.insert or .save --- SAME FOR GAME
-	// dont need QUERY
+
 	// Check to see if USER already exists in DB! if yes throw error
 	@Override
-	public void createUser(MyUser user) {
+	public void createUser(MyUser user) throws UserAlreadyExistsException {
 		DBCollection collection = getCollection();
-
+		
+		// Check to see is User already exists
 		BasicDBObject query = new BasicDBObject();
-		query.put("id", user.getId());	
+		query.put("id", user.getId());
+		DBCursor cursor = collection.find(query);
+		while(cursor.hasNext()) {
+			if(cursor != null) {
+				throw new UserAlreadyExistsException(user.getId());
+			}
+		}
 
 		BasicDBObject userDoc = new BasicDBObject();
+		userDoc.append("id", user.getId());
 		userDoc.append("firstName", user.getFirstName());
 		userDoc.append("lastName", user.getLastName());
 		userDoc.append("username", user.getUsername());
@@ -120,7 +134,7 @@ public class MongoUserDAO implements IUserDAO {
 		userDoc.append("imageURL", user.getImageURL());
 		userDoc.append("isAdmin", user.getIsAdmin());
 		
-		collection.update(query, userDoc);
+		collection.insert(userDoc);
 			
 	}
 	

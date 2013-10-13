@@ -17,7 +17,9 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 
+import edu.wm.werewolf.exceptions.UserAlreadyExistsException;
 import edu.wm.werewolf.model.Game;
+import edu.wm.werewolf.model.MyUser;
 
 public class MongoGameDAO implements IGameDAO {
 
@@ -66,18 +68,15 @@ public class MongoGameDAO implements IGameDAO {
 	public void createGame(Game game) {
 		DBCollection collection = getCollection();
 		
-		//Don't think I need
-		BasicDBObject query = new BasicDBObject();
-		query.put("id", game.getId());
-		
 		BasicDBObject gameDoc = new BasicDBObject();
 		gameDoc.append("id", game.getId());
-		gameDoc.append("dayNightFreq", game.getDayNightFreq());
 		gameDoc.append("createdDate", game.getCreatedDate());
+		gameDoc.append("isNight", game.getIsNight());
+		gameDoc.append("dayNightFreq", game.getDayNightFreq());
 		gameDoc.append("isRunning", game.getIsRunning());
 		gameDoc.append("timer", game.getTimer());
 
-		collection.update(query, gameDoc);	
+		collection.insert(gameDoc);	
 	}
 	
 	
@@ -86,7 +85,7 @@ public class MongoGameDAO implements IGameDAO {
 		DBCollection collection = getCollection();
 		
 		BasicDBObject query = new BasicDBObject();
-		query.put("createdDate", game.getCreatedDate());
+		query.put("id", game.getId());
 		
 		BasicDBObject gameDoc = new BasicDBObject();
 
@@ -114,15 +113,39 @@ public class MongoGameDAO implements IGameDAO {
 	
 	@Override
 	public Game getCurrentGame() {
-		Game game = new Game(12, null);
-		return game;
+		DBCollection coll = getCollection();
+		
+		BasicDBObject query = new BasicDBObject();
+		query.put("isRunning", true);
+		DBCursor cursor = coll.find(query);
+		
+		while(cursor.hasNext()) {
+			if (cursor!=null){
+				Game g = convertFromObject(cursor.next());
+				return g;
+			}
+		}
+		
+		return null;
 	}
 	
 
 	@Override
 	public Game getGameByDate(Date date) {
-		Game game = new Game(12, date);
-		return game;
+		DBCollection coll = getCollection();
+		
+		BasicDBObject query = new BasicDBObject();
+		query.put("createdDate", date);
+		DBCursor cursor = coll.find(query);
+		
+		while(cursor.hasNext()) {
+			if (cursor!=null){
+				Game g = convertFromObject(cursor.next());
+				return g;
+			}
+		}
+		
+		return null;
 	}
 	
 	

@@ -19,10 +19,13 @@ public class MyUser extends User {
 	protected String id;
 	protected String firstName;
 	protected String lastName;
+	protected String username;
+	protected String password;
 	protected String imageURL;
 	protected Boolean isAdmin;
+	protected Collection<GrantedAuthority> authorities;
 	
-	
+
 	public MyUser(String firstName,
 			String lastName, String username,
 			String password, String imageURL, Boolean isAdmin,
@@ -60,6 +63,22 @@ public class MyUser extends User {
 		this.lastName = lastName;
 	}
 
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	
 	public String getImageURL() {
 		return imageURL;
 	}
@@ -75,11 +94,18 @@ public class MyUser extends User {
 	public void setIsAdmin(Boolean isAdmin) {
 		this.isAdmin = isAdmin;
 	}
+	
+	public Collection<GrantedAuthority> getAuthorities() {
+		return authorities;
+	}
 
+	public void setAuthorities(Collection<GrantedAuthority> authorities) {
+		this.authorities = authorities;
+	}
+	
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
-	
 	
 }
 

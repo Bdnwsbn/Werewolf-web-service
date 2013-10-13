@@ -5,8 +5,9 @@ import java.util.Date;
 public class Game {
 
 	private String id;
-	private int dayNightFreq;
 	private Date createdDate;
+	private Boolean isNight;
+	private int dayNightFreq;
 	private Boolean isRunning;
 	private long timer;
 
@@ -16,10 +17,14 @@ public class Game {
 	}
 	
 	// Constructor
-	public Game(int dayNightFreq, Date createdDate) {
+	public Game(String id, Date createdDate, Boolean isNight, int dayNightFreq, Boolean isRunning, long timer) {
 		super();
-		this.dayNightFreq = dayNightFreq;
+		this.id = id;
 		this.createdDate = createdDate;
+		this.isNight = isNight;
+		this.dayNightFreq = dayNightFreq;
+		this.isRunning = isRunning;
+		this.timer = timer;
 	}
 
 	// Getter & Setters
@@ -47,13 +52,6 @@ public class Game {
 		this.createdDate = createdDate;
 	}
 	
-	public boolean isNight(){
-		Date d = new Date();
-		Long dt = d.getTime() - this.createdDate.getTime();
-		if (dt / dayNightFreq % 2 == 0)
-			return true;
-		return false;
-	}
 
 	public Boolean getIsRunning() {
 		return isRunning;
@@ -69,6 +67,18 @@ public class Game {
 
 	public void setTimer(long timer) {
 		this.timer = timer;
+	}
+
+	public Boolean getIsNight() {
+		Date d = new Date();
+		Long dt = d.getTime() - this.createdDate.getTime();
+		if (dt / dayNightFreq % 2 == 0)
+			return true;
+		return false;
+	}
+
+	public void setIsNight(Boolean isNight) {
+		this.isNight = isNight;
 	}
 
 }
