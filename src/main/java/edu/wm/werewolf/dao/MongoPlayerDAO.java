@@ -58,8 +58,8 @@ public class MongoPlayerDAO implements IPlayerDAO {
 	}
 	
 	// This method is necessary since we are using a BasicDBObject to query. 
-	// Since its a BasicDBObject, we can convert it to a Player object and set the player attributes based on values
-	// stored in MongoDB for the particular player
+	// Since it's a BasicDBObject, we can convert it to a Player object and set the player attributes
+	// based on values stored in MongoDB for the particular player
 	private Player convertFromObject(DBObject object) {
 		Player player = new Player();
 		
@@ -90,20 +90,14 @@ public class MongoPlayerDAO implements IPlayerDAO {
 		Player player = convertFromObject(object);
 		
 		return player;
-	}
+	}	
 	
-	
-	// Creates a Player object, and updates MongoDB 
-	// Note that Player object passed in is created with the General constructor
-	// Only field Player object has is userId which GameService sets
-	
-	// Problem about player collection. Do I have to create the player collection somewhere? Which would consist of
-	// players with only the userId field. Then we can do what I have below.
+
 	@Override
 	public void createPlayer(Player player) {
 		DBCollection collection = getCollection();
 		
-		// find User to add Player object too via ObjectId
+		// find User to add Player object to via ObjectId
 		BasicDBObject query = new BasicDBObject();
 		query.put("userId", player.getUserId());
 		
@@ -119,12 +113,11 @@ public class MongoPlayerDAO implements IPlayerDAO {
 		collection.update(query, playerDoc);
 	}
 	
-	
-	// Method to update a single player in the "players" collection  
+	 
 	public void updatePlayer(Player player){
 		DBCollection collection = getCollection();
 		
-		// find User to add Player object too via ObjectId
+		// find User to add Player object to via ObjectId
 		BasicDBObject query = new BasicDBObject();
 		query.put("userId", player.getUserId());
 		
@@ -139,21 +132,18 @@ public class MongoPlayerDAO implements IPlayerDAO {
 		playerDoc.append("$set", new BasicDBObject().append("lat", player.getLat()));
 		playerDoc.append("$set", new BasicDBObject().append("lng", player.getLng()));
 		
-		
 		// Will change only the player that matches the searchQuery BasicDBObject player id
 		collection.update(query, playerDoc);	
 	}
 	
 	
-	// Concern: Make sure Admins don't get copied into list somehow
 	@Override
 	public List<Player> getAllAlive() {
 		
 		// Player object list
 		List<Player> players = new ArrayList<>();
 		
-		// Java MongoDB cursor
-		// Find all players, convertFromObject to Player object, if player isDead = false, add to list
+		// Java MongoDB cursor (Not a Spring MongoDB cursor!)
 		DBCollection collection = getCollection();
 		DBCursor cursor = collection.find();
 		
@@ -173,21 +163,20 @@ public class MongoPlayerDAO implements IPlayerDAO {
 		return players;
 	}
 	
-	// Returns list of votable players' ids
+	
 	@Override
 	public List<Player> getAllVotable() {
 		List<Player> voters = new ArrayList<>();
 		
-		// Must be alive and not a Werewolf to vote
 		List<Player> players = getAllAlive();
 		for(Player p : players) {
-			if (!p.isWerewolf())
 				voters.add(p);
 		}
+		
 		return voters;
 	}
+	
 
-	// Sets a player's GPS Location and updates mongoDB
 	@Override
 	public void setPlayerLocation(String id, GPSLocation loc){
 		DBCollection collection = getCollection();
@@ -204,18 +193,17 @@ public class MongoPlayerDAO implements IPlayerDAO {
 		collection.update(query, locDoc);
 	}
 	
-	// Sets a player's isDead = true and updates mongoDB
+	
 	@Override
 	public void setDead(Player player) {
+		DBCollection collection = getCollection();
 		BasicDBObject newDocument = new BasicDBObject();
 		
-		// Updates isDead value to true for player
 		// $set updates a particular value, instead of replacing entire document
 		newDocument.append("$set",  new BasicDBObject().append("isDead", true));
 		
 		BasicDBObject searchQuery = new BasicDBObject().append("_id", player.getId());
 		
-		DBCollection collection = getCollection();
 		collection.update(searchQuery, newDocument);
 	}
 

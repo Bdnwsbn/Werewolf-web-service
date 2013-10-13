@@ -4,11 +4,17 @@ import java.util.Date;
 
 public class Game {
 
+	private String id;
 	private int dayNightFreq;
 	private Date createdDate;
 	private Boolean isRunning;
 	private long timer;
 
+	
+	public Game(){
+		
+	}
+	
 	// Constructor
 	public Game(int dayNightFreq, Date createdDate) {
 		super();
@@ -17,6 +23,14 @@ public class Game {
 	}
 
 	// Getter & Setters
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+	
 	public int getDayNightFreq() {
 		return dayNightFreq;
 	}

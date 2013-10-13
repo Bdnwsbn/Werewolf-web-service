@@ -20,10 +20,12 @@ public class MyUser extends User {
 	protected String firstName;
 	protected String lastName;
 	protected String imageURL;
+	protected Boolean isAdmin;
+	
 	
 	public MyUser(String firstName,
 			String lastName, String username,
-			String password, String imageURL,
+			String password, String imageURL, Boolean isAdmin,
 			Collection<GrantedAuthority> authorities ) {
 		
 		super(username, password, true, true, true, true, authorities);
@@ -31,6 +33,7 @@ public class MyUser extends User {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.imageURL = imageURL;
+		this.isAdmin = isAdmin;
 	}
 	
 	public String getId(){
@@ -63,6 +66,14 @@ public class MyUser extends User {
 
 	public void setImageURL(String imageURL) {
 		this.imageURL = imageURL;
+	}
+	
+	public Boolean getIsAdmin() {
+		return isAdmin;
+	}
+
+	public void setIsAdmin(Boolean isAdmin) {
+		this.isAdmin = isAdmin;
 	}
 
 	public static long getSerialversionuid() {

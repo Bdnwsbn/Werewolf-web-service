@@ -8,7 +8,7 @@ public class User {
 	private String username;
 	private String hashedPassword;
 	private String imageURL;
-	private String isAdmin;
+	private Boolean isAdmin;
 	
 	// General Constructor
 	public User() {
@@ -17,7 +17,7 @@ public class User {
 
 	// User Constructor
 	public User(String id, String firstName, String lastName, String username,
-			String hashedPassword, String imageURL, String isAdmin) {
+			String hashedPassword, String imageURL, Boolean isAdmin) {
 		super();
 		this.id = id;
 		this.firstName = firstName;
@@ -77,11 +77,11 @@ public class User {
 		this.imageURL = imageURL;
 	}
 
-	public String getIsAdmin() {
+	public Boolean getIsAdmin() {
 		return isAdmin;
 	}
 
-	public void setIsAdmin(String isAdmin) {
+	public void setIsAdmin(Boolean isAdmin) {
 		this.isAdmin = isAdmin;
 	}
 }

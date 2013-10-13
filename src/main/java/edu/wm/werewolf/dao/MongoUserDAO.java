@@ -1,12 +1,14 @@
 package edu.wm.werewolf.dao;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -16,6 +18,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 
+import edu.wm.werewolf.exceptions.NoUserFoundException;
 import edu.wm.werewolf.model.MyUser;
 import edu.wm.werewolf.model.Player;
 import edu.wm.werewolf.model.User;
@@ -46,11 +49,11 @@ public class MongoUserDAO implements IUserDAO {
 		return coll;
 	}
 	
-	// This method is necessary since we are using a BasicDBObject to query. 
-	// Since its a BasicDBObject, we can convert it to a User object and set the user attributes based on values
-	// stored in MongoDB for the particular user
-	private User convertFromObject(DBObject o) {
-		User u = new User();
+// ****Error here: overwrites username, and password to null!!!1****
+	private MyUser convertFromObject(DBObject o) {
+		// Null fields = firstName, lastName, username, password,  imageURL, Boolean isAdmin, 
+		// Collection<GrantedAuthority> authorities
+		MyUser u = new MyUser(null, null, null, null, null, null, null);
 		
 		ObjectId streamid = (ObjectId) o.get("_id");
 		
@@ -59,15 +62,12 @@ public class MongoUserDAO implements IUserDAO {
 		u.setFirstName((String) o.get("firstName"));
 		u.setLastName((String) o.get("lastName"));
 		u.setImageURL((String) o.get("imageURL"));
-		u.setUsername((String) o.get("username"));
-		u.setHashedPassword((String) o.get("hashedPassword"));
-		u.setIsAdmin((String) o.get("isAdmin"));
+		u.setIsAdmin((Boolean) o.get("isAdmin"));
 		return u;
 	}
 	
-	// Need a throw no NoUserFoundException ???? 
 	@Override
-	public User getUserById(String id) {
+	public MyUser getUserById(String id) throws NoUserFoundException {
 		DBCollection coll = getCollection();
 		
 		BasicDBObject query = new BasicDBObject();
@@ -75,19 +75,21 @@ public class MongoUserDAO implements IUserDAO {
 		
 		DBObject o = coll.findOne(query);
 		
-		User u = convertFromObject(o);
+		MyUser u = convertFromObject(o);
 		
 		return u;
 	}
 	
 	@Override
-	public void removeUserById(String username) {
-		// TODO Auto-generated method stub
-		
+	public void removeUserById(String id) {
+		DBCollection coll = getCollection();
+		BasicDBObject user = new BasicDBObject();
+		user.put("_id", new ObjectId(id));
+		coll.remove(user);
 	}
 	
 	@Override
-	public User getUserByName(String name){
+	public MyUser getUserByUsername(String name){
 		DBCollection coll = getCollection();
 		
 		BasicDBObject query = new BasicDBObject();
@@ -95,40 +97,69 @@ public class MongoUserDAO implements IUserDAO {
 		
 		DBObject o = coll.findOne(query);
 		
-		User u = convertFromObject(o);
+		MyUser u = convertFromObject(o);
 		
 		return u;
 	}
 	
-	
+	// Change to coll.insert or .save --- SAME FOR GAME
+	// dont need QUERY
+	// Check to see if USER already exists in DB! if yes throw error
 	@Override
-	public void createUser(User user) {
-		// TODO Auto-generated method stub
+	public void createUser(MyUser user) {
+		DBCollection collection = getCollection();
+
+		BasicDBObject query = new BasicDBObject();
+		query.put("id", user.getId());	
+
+		BasicDBObject userDoc = new BasicDBObject();
+		userDoc.append("firstName", user.getFirstName());
+		userDoc.append("lastName", user.getLastName());
+		userDoc.append("username", user.getUsername());
+		userDoc.append("password", user.getPassword());
+		userDoc.append("imageURL", user.getImageURL());
+		userDoc.append("isAdmin", user.getIsAdmin());
+		
+		collection.update(query, userDoc);
 			
 	}
 	
+	@Override
+	public void setAdmin(MyUser user) {
+		DBCollection collection = getCollection();
+		BasicDBObject newDocument = new BasicDBObject();
+		
+		newDocument.append("$set",  new BasicDBObject().append("isAdmin", true));
+		
+		BasicDBObject searchQuery = new BasicDBObject().append("_id", user.getId());
 
-	// Is making another ConvertFromObject for MyUser right? 
-		// Do we do make this ConvertfromObject in UserServiceImpl??
+		collection.update(searchQuery, newDocument);
+		
+	}
+	
+	
 	@Override
 	public List<MyUser> getAllUsers() {
-		// MyUser object list
 		List<MyUser> users = new ArrayList<>();
 		
-		// Java MongoDB cursor
-		// Find all users, convertFromObject to MyUser object
 		DBCollection collection = getCollection();
 		DBCursor cursor = collection.find();
-		while(cursor.hasNext()){
-			
-			// Object found is a DBObject
+		
+		while(cursor.hasNext()){	
 			DBObject obj = cursor.next();
 			
-			// Convert DBObject to User object
 			MyUser user = convertFromObject(obj);
+			users.add(user);
 		}
 		
 		return users;
+	}
+	
+
+	@Override
+	public void dropAllUsers() {
+		DBCollection users = getCollection();
+		users.drop();
 	}
 
 }

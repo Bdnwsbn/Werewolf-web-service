@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import edu.wm.werewolf.dao.IGameDAO;
 import edu.wm.werewolf.dao.IPlayerDAO;
 import edu.wm.werewolf.dao.IUserDAO;
 import edu.wm.werewolf.exceptions.NoPlayerFoundException;
@@ -30,37 +31,10 @@ public class GameService {
 	
 	@Autowired private IPlayerDAO playerDao;
 	@Autowired private IUserDAO userDao;
+	@Autowired private IGameDAO gameDao;
+	
 
-	// Dont think I need this yet...
-/*	public void startGame(){
-		logger.info("Game is starting");
-		
-		List<MyUser> users = userDao.getAllUsers();
-		List<Player> players = new ArrayList<>();
-		
-		for (MyUser u: users){
-			Player p = new Player();
-			p.setUserId(u.getId());
-			playerDao.createPlayer(p);
-			players.add(p);
-		}	
-		
-		// So that players aren't always a werewolf or townsperson
-		Collections.shuffle(players, new Random(System.currentTimeMillis()));
-		
-		// Index range of players in players list to be Werewolves
-		// Aka: If werewolfIndex = 3, then take top three players from player list
-		int werewolfindex = (int) (players.size()*0.30f);
-	}*/
-	
-	
-	// Create players: Check
-	// Make some players WWs:Check
-	// Reset game properties (createdDate, dayNightFreq): Check  (Supposed to do this??) 
-		// -- or pass through Game properties for restartGame? 
 	// Make someone an Admin?
-	
-	// Method to restart the game
 	public void restartGame(){
 		logger.info("Game is restarting");
 		
@@ -69,12 +43,14 @@ public class GameService {
 		List<MyUser> users = userDao.getAllUsers();
 		List<Player> players = new ArrayList<>();
 		
-		// Create players for all Users
+		// Create players for all Users unless User is admin
 		for (MyUser u: users){
-			Player p = new Player();
-			p.setUserId(u.getId());
-			playerDao.createPlayer(p);
-			players.add(p);
+			if(!u.getIsAdmin()) {
+				Player p = new Player();
+				p.setUserId(u.getId());
+				playerDao.createPlayer(p);
+				players.add(p);
+			}
 		}	
 		
 		// Randomly shuffles list of players
@@ -88,25 +64,25 @@ public class GameService {
 			players.get(i).setWerewolf(true);
 		}
 		
-		// Supposed to do this??
-		//---------------------------Reset Game Properties-----------------------------//
-		Game game = new Game(12, new Date());
+		// Create a new game
+		Date date = new Date();
+		Game game = gameDao.getCurrentGame();
+		Game newGame = new Game(game.getDayNightFreq(), date);
+		gameDao.createGame(newGame);
 	}
 	
 	public List<Player> getAllAlive() {
 		return playerDao.getAllAlive();
 	}
 	
-	// Returns list of playerIds
+
 	public List<Player> getAllVotable() {
 		return playerDao.getAllVotable();
 	}
 	
-	// MAKE IN PLAYERDAO - but can't since use reportCurrentPosition!
-	// For now I am assuming that the player is a werewolf and not validating that....
-	// Finds all townspeople near the Werewolf
-	public List<Player> getAllNearby(Player werewolf) throws NoPlayerFoundException{
-		List<Player> playersNearby = new ArrayList<>();
+
+	public List<Player> getAllNearby(Player werewolf, List<Player> playersNearby) 
+										throws NoPlayerFoundException {
 		
 		// Werewolf's Location
 		GPSLocation wwLoc = new GPSLocation(werewolf.getLat(), werewolf.getLng());
@@ -120,7 +96,7 @@ public class GameService {
 				GPSLocation pLoc = new GPSLocation(p.getLat(), p.getLng());
 				pLoc = reportCurrentPosition(p.getUserId(),pLoc);
 				
-				// Check to see if near Werewolf
+				// Check to see within radius of Werewolf
 				double distance = Math.sqrt( (wwLoc.getLat() - pLoc.getLat())*
 						(wwLoc.getLat() - pLoc.getLat())
 						+ (wwLoc.getLng() - pLoc.getLng())*
@@ -134,10 +110,9 @@ public class GameService {
 		return playersNearby;
 	}
 	
-	// Updates an alive player's position
-	// Potential Bug: If player is not alive, location not updated. May say player is still at last location
+
 	public void updatePosition(String username, GPSLocation location) throws NoPlayerFoundException{
-		 User u = userDao.getUserByName(username);
+		 MyUser u = userDao.getUserByUsername(username);
 		 Player p = playerDao.getPlayerById(u.getId());
 		 
 		 if (!p.isDead())
@@ -147,7 +122,7 @@ public class GameService {
 	public GPSLocation reportCurrentPosition(String username, GPSLocation location) throws NoPlayerFoundException{
 		updatePosition(username,location);
 		
-		 User u = userDao.getUserByName(username);
+		 MyUser u = userDao.getUserByUsername(username);
 		 Player p = playerDao.getPlayerById(u.getId());
 		 location.setLat(p.getLat());
 		 location.setLng(p.getLng());
@@ -155,11 +130,10 @@ public class GameService {
 		 return location;
 	}
 	
-	// Determines if a Werewolf can kill a townsperson
-	// Player can kill if isWerewolf, game is at night stage, and victim is within kill radius
+
 	public Boolean canKill(Player killer, Player victim) throws NoPlayerFoundException{
 		
-		Game game = new Game(0, null);
+		Game game = gameDao.getCurrentGame();
 		
 		if (killer.isWerewolf() && game.isNight()){
 			GPSLocation killerLoc = new GPSLocation(killer.getLat(), killer.getLng());
@@ -186,18 +160,19 @@ public class GameService {
 		return false;
 	}
 
+	// *****Does nothing with Kill object...maybe to keep track of kills list?*****
 	// Will want to award points to Werewolf (killer) and then call updatePlayer.
-	// Kills player if canKill true
-	public void killPlayer(Player killer, Player victim) throws NoPlayerFoundException{
-		
-		if (canKill(killer, victim)){
-			victim.setDead(true);
-			playerDao.updatePlayer(victim);
-			playerDao.updatePlayer(killer);
+	public void killPlayer(String killer, String victim) throws NoPlayerFoundException{
+		Player playerKiller = playerDao.getPlayerById(killer);
+		Player playerVictim = playerDao.getPlayerById(victim);
+		if (canKill(playerKiller, playerVictim)){
+			playerVictim.setDead(true);
+			playerDao.updatePlayer(playerVictim);
+			playerDao.updatePlayer(playerKiller);
 			
 			Date date = new Date();
-			Kill k = new Kill(killer.getUserId(), victim.getUserId(), date,
-					(float) killer.getLat(), (float) killer.getLng());
+			Kill k = new Kill(playerKiller.getUserId(), playerVictim.getUserId(), date,
+					(float) playerKiller.getLat(), (float) playerKiller.getLng());
 		}
 	}
 	
@@ -205,18 +180,17 @@ public class GameService {
 	
 	// Possible problem - must reset votedAgainst or else wont be able to vote after
 	// the first time the way I have this set up
-	// Fix game
 	// Should I write something for the else?
-	public void votePlayer(Player voter, Player votee) {
-		Game game = new Game(12, null);
+	public void votePlayer(String voter, String votee) throws NoPlayerFoundException {
+		Game game = gameDao.getCurrentGame();
+		Player playerVoter = playerDao.getPlayerById(voter);
+		Player playerVotee = playerDao.getPlayerById(votee);
 		
-		// If voter hasnt voted, is alive, and its day time, and votee can be voted for
-		if (!game.isNight() && !voter.isDead() && voter.getVotedAgainst() == null){
+		if (!game.isNight() && !playerVoter.isDead() && playerVoter.getVotedAgainst() == null){
 			List<Player> votables = getAllVotable();
-			if (votables.contains(votee)) {
+			if (votables.contains(playerVotee)) {
 				
-				// Vote is valid
-				voter.setVotedAgainst(votee.getId());
+				playerVotee.setVotedAgainst(playerVotee.getId());
 			}
 		}	
 	}

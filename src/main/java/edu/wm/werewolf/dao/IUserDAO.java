@@ -2,19 +2,25 @@ package edu.wm.werewolf.dao;
 
 import java.util.List;
 
+import edu.wm.werewolf.exceptions.NoUserFoundException;
 import edu.wm.werewolf.model.MyUser;
 import edu.wm.werewolf.model.User;
 
 public interface IUserDAO {
 
-	void createUser (User user);
+	void createUser(MyUser user);
 
-	User getUserById(String id);
+	MyUser getUserById(String id) throws NoUserFoundException;
 
-	User getUserByName(String name);
+	MyUser getUserByUsername(String name);
 
 	void removeUserById(String username);
+	
+	void setAdmin(MyUser user);
 
 	List<MyUser> getAllUsers();
-	
+
+	void dropAllUsers();
+
+
 }

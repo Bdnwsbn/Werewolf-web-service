@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserDetailsService, IUserService{
 	@Override
 	public UserDetails loadUserByUsername(String name) throws UsernameNotFoundException {
 		
-		MyUser u = userDao.getUserByName(name);
+		MyUser u = userDao.getUserByUsername(name);
 		
 		logger.info("Got: " + u);
 		
@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserDetailsService, IUserService{
 		
 		Collection<GrantedAuthority> authorities = new ArrayList<>();
 		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-		MyUser u = new MyUser(firstname,lastname, username, password, "user.png", authorities);
+		MyUser u = new MyUser(firstname,lastname, username, password, "user.png", false, authorities);
 		userDao.createUser(u);
 	}
 	
