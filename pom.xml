@@ -164,97 +164,120 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.tomcat.embed</groupId>
-			<artifactId>tomcat-embed-core</artifactId>
-			<version>${tomcat.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tomcat.embed</groupId>
-			<artifactId>tomcat-embed-logging-juli</artifactId>
-			<version>${tomcat.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tomcat.embed</groupId>
-			<artifactId>tomcat-embed-jasper</artifactId>
-			<version>${tomcat.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>tomcat-jasper</artifactId>
-			<version>${tomcat.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>tomcat-jasper-el</artifactId>
-			<version>${tomcat.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>tomcat-jsp-api</artifactId>
-			<version>${tomcat.version}</version>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.tomcat.embed</groupId> -->
+<!-- 			<artifactId>tomcat-embed-core</artifactId> -->
+<!-- 			<version>${tomcat.version}</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.tomcat.embed</groupId> -->
+<!-- 			<artifactId>tomcat-embed-logging-juli</artifactId> -->
+<!-- 			<version>${tomcat.version}</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.tomcat.embed</groupId> -->
+<!-- 			<artifactId>tomcat-embed-jasper</artifactId> -->
+<!-- 			<version>${tomcat.version}</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.tomcat</groupId> -->
+<!-- 			<artifactId>tomcat-jasper</artifactId> -->
+<!-- 			<version>${tomcat.version}</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.tomcat</groupId> -->
+<!-- 			<artifactId>tomcat-jasper-el</artifactId> -->
+<!-- 			<version>${tomcat.version}</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.tomcat</groupId> -->
+<!-- 			<artifactId>tomcat-jsp-api</artifactId> -->
+<!-- 			<version>${tomcat.version}</version> -->
+<!-- 		</dependency> -->
 	</dependencies>
     
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <additionalProjectnatures>
-                        <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
-                    </additionalProjectnatures>
-                    <additionalBuildcommands>
-                        <buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand>
-                    </additionalBuildcommands>
-                    <downloadSources>true</downloadSources>
-                    <downloadJavadocs>true</downloadJavadocs>
-                </configuration>
-            </plugin>
+<!--             <plugin> -->
+<!--                 <artifactId>maven-eclipse-plugin</artifactId> -->
+<!--                 <version>2.9</version> -->
+<!--                 <configuration> -->
+<!--                     <additionalProjectnatures> -->
+<!--                         <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature> -->
+<!--                     </additionalProjectnatures> -->
+<!--                     <additionalBuildcommands> -->
+<!--                         <buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand> -->
+<!--                     </additionalBuildcommands> -->
+<!--                     <downloadSources>true</downloadSources> -->
+<!--                     <downloadJavadocs>true</downloadJavadocs> -->
+<!--                 </configuration> -->
+<!--             </plugin> -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.5.1</version>
+                <inherited>true</inherited>
                 <configuration>
-                    <source>$[java-version]</source>
-                    <target>$[java-version]</target>
+                    <source>${java-version}</source>
+                    <target>${java-version}</target>
                     <compilerArgument>-Xlint:all</compilerArgument>
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <configuration>
-                    <mainClass>org.test.int1.Main</mainClass>
-                </configuration>
-            </plugin>
-            <!-- For Tomcat Launch lass -->
-            <plugin>
-	            <groupId>org.codehaus.mojo</groupId>
-	            <artifactId>appassembler-maven-plugin</artifactId>
-	            <version>1.1.1</version>
-	            <configuration>
-	                <assembleDirectory>target</assembleDirectory>
-	                <programs>
-	                    <program>
-	                        <mainClass>launch.Main</mainClass>
-	                        <name>webapp</name>
-	                    </program>
-	                </programs>
-	            </configuration>
+<!--             <plugin> -->
+<!--                 <groupId>org.codehaus.mojo</groupId> -->
+<!--                 <artifactId>exec-maven-plugin</artifactId> -->
+<!--                 <version>1.2.1</version> -->
+<!--                 <configuration> -->
+<!--                     <mainClass>org.test.int1.Main</mainClass> -->
+<!--                 </configuration> -->
+<!--             </plugin> -->
+            <!-- For Tomcat Launch class -->
+<!--             <plugin> -->
+<!-- 	            <groupId>org.codehaus.mojo</groupId> -->
+<!-- 	            <artifactId>appassembler-maven-plugin</artifactId> -->
+<!-- 	            <version>1.1.1</version> -->
+<!-- 	            <configuration> -->
+<!-- 	                <assembleDirectory>target</assembleDirectory> -->
+<!-- 	                <programs> -->
+<!-- 	                    <program> -->
+<!-- 	                        <mainClass>edu.wm.werewolf.launch.Main</mainClass> -->
+<!-- 	                        <name>webapp</name> -->
+<!-- 	                    </program> -->
+<!-- 	                </programs> -->
+<!-- 	            </configuration> -->
+<!-- 	            <executions> -->
+<!-- 	                <execution> -->
+<!-- 	                    <phase>package</phase> -->
+<!-- 	                    <goals> -->
+<!-- 	                        <goal>assemble</goal> -->
+<!-- 	                    </goals> -->
+<!-- 	                </execution> -->
+<!-- 	            </executions> -->
+<!--         	</plugin> -->
+
+        	<plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-dependency-plugin</artifactId>
+	            <version>2.3</version>
 	            <executions>
 	                <execution>
 	                    <phase>package</phase>
-	                    <goals>
-	                        <goal>assemble</goal>
-	                    </goals>
+	                    <goals><goal>copy</goal></goals>
+	                    <configuration>
+	                        <artifactItems>
+	                            <artifactItem>
+	                                <groupId>org.mortbay.jetty</groupId>
+	                                <artifactId>jetty-runner</artifactId>
+	                                <version>7.5.4.v20111024</version>
+	                                <destFileName>jetty-runner.jar</destFileName>
+	                            </artifactItem>
+	                        </artifactItems>
+	                    </configuration>
 	                </execution>
 	            </executions>
-        	</plugin>
+	        </plugin>
         </plugins>
     </build>
 </project>

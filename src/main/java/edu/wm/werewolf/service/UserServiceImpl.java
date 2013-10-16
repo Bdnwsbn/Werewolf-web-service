@@ -38,12 +38,13 @@ public class UserServiceImpl implements UserDetailsService, IUserService{
 	}
 	
 	@Override
-	public void createUser(String username, String password, 
+	public void createUser(String id, String username, String password, 
 			String firstname, String lastname) throws UserAlreadyExistsException{
 		
 		Collection<GrantedAuthority> authorities = new ArrayList<>();
 		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-		MyUser u = new MyUser(firstname,lastname, username, password, "user.png", false, authorities);
+		MyUser u = new MyUser(id, firstname,lastname, username, password,
+								"user.png", false, authorities);
 		userDao.createUser(u);
 	}
 	

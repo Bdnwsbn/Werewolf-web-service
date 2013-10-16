@@ -26,13 +26,14 @@ public class MyUser extends User {
 	protected Collection<GrantedAuthority> authorities;
 	
 
-	public MyUser(String firstName,
+	public MyUser(String id, String firstName,
 			String lastName, String username,
 			String password, String imageURL, Boolean isAdmin,
 			Collection<GrantedAuthority> authorities ) {
 		
 		super(username, password, true, true, true, true, authorities);
 		
+		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.imageURL = imageURL;

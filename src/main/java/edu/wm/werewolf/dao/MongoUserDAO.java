@@ -53,9 +53,9 @@ public class MongoUserDAO implements IUserDAO {
 		return coll;
 	}
 	
-// ****Error here: overwrites username, and password to null!!!1****
+
 	private MyUser convertFromObject(DBObject o) {
-		MyUser u = new MyUser(null, null, null, null, null, null, null);
+		MyUser u = new MyUser(null, null, null, null, null, null, null, null);
 		
 		ObjectId streamid = (ObjectId) o.get("_id");
 		
