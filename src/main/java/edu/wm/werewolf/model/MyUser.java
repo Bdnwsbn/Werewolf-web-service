@@ -36,8 +36,11 @@ public class MyUser extends User {
 		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
+		this.username = username;
+		this.password = password;
 		this.imageURL = imageURL;
 		this.isAdmin = isAdmin;
+		this.authorities = authorities;
 	}
 	
 	public String getId(){
@@ -106,6 +109,11 @@ public class MyUser extends User {
 	
 	public static long getSerialversionuid() {
 		return serialVersionUID;
+	}
+	
+	@Override
+	public String toString(){
+		return firstName + " " + lastName;
 	}
 	
 }

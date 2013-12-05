@@ -15,7 +15,7 @@ public interface IUserDAO {
 
 	MyUser getUserByUsername(String name);
 
-	void removeUserById(String username);
+	void removeUserByUsername(String username);
 	
 	void setAdmin(MyUser user);
 

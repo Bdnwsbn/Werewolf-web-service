@@ -19,17 +19,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import edu.wm.werewolf.dao.IPlayerDAO;
-import edu.wm.werewolf.dao.MongoUserDAO;
 import edu.wm.werewolf.exceptions.NoPlayerFoundException;
 import edu.wm.werewolf.model.GPSLocation;
-import edu.wm.werewolf.model.Game;
 import edu.wm.werewolf.model.JsonResponse;
-import edu.wm.werewolf.model.Kill;
 import edu.wm.werewolf.model.Player;
 import edu.wm.werewolf.model.PlayerListResponse;
-import edu.wm.werewolf.model.Vote;
 import edu.wm.werewolf.service.GameService;
+import edu.wm.werewolf.service.UserServiceImpl;
 
 /**
  * Handles requests for the application home page.
@@ -40,8 +36,8 @@ public class HomeController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 	
-	// Autowired - finds a satisfied bean that wires reference to existing bean (link to this DAO)
 	@Autowired private GameService gameService;
+	@Autowired private UserServiceImpl userService; 
 	
 	/**
 	 * Simply selects the home view to render by returning its name.
@@ -61,38 +57,73 @@ public class HomeController {
 	}
 	
 	// Not complete
+	@RequestMapping(value = "/createUser", method = RequestMethod.POST)
+	public @ResponseBody JsonResponse createUser(Principal principal) {
+		JsonResponse response = new JsonResponse();
+		//userService.createUser()
+		response.setStatus("success");
+		return response;
+	}
+	
+	// Not complete
 	// Should get return AdminConsole jsp (I think)
 	@RequestMapping(value = "/admin", method=RequestMethod.GET)
 	public @ResponseBody JsonResponse adminConsole(Principal principal) {
 		JsonResponse response = new JsonResponse();
-		
+		response.setStatus("success");
+		return response;
+	}
+	
+	
+	@RequestMapping(value = "/admin/restartGame", method=RequestMethod.POST)
+	public @ResponseBody JsonResponse restartGame(Principal principal) {
+		JsonResponse response = new JsonResponse();
+		logger.info(principal.getName() + " is restarting the game");
+		gameService.restartGame();
+		response.setStatus("success");
 		return response;
 	}
 	
 
-	@RequestMapping(value = "/admin/restartGame", method=RequestMethod.POST)
-	public @ResponseBody Game restartGame(@ModelAttribute Game game, Principal principal) {
-		logger.info(principal.getName() + " is restarting the game");
-		gameService.restartGame();
-		return game;
+	@RequestMapping(value = "/players/all", method=RequestMethod.GET)
+	public @ResponseBody PlayerListResponse getAllPlayers() {
+		List<Player> players = new ArrayList<>();
+		PlayerListResponse response = new PlayerListResponse(players);
+		
+		players = gameService.getAllPlayers();
+		response.setPlayerList(players);
+		
+		if (!(players.isEmpty())) 
+			response.setStatus = "success";
+		else
+			response.setStatus = "no players";
+		
+		return response;
 	}
-	
-	
-	// Should this be PlayerListResponse??
 	@RequestMapping(value = "/players/alive", method=RequestMethod.GET)
-	public @ResponseBody List<Player> getAllAlive() {
-		List<Player> players = gameService.getAllAlive();
-		return players;
+	public @ResponseBody PlayerListResponse getAllAlive() {
+		List<Player> players = new ArrayList<>();
+		PlayerListResponse response = new PlayerListResponse(players);
+		
+		players = gameService.getAllAlive();
+		response.setPlayerList(players);
+		
+		if (!(players.isEmpty())) 
+			response.setStatus = "success";
+		else
+			response.setStatus = "no players";
+		
+		return response;
 	}
-	
 
+	
 	@RequestMapping(value = "/players/nearby", method=RequestMethod.GET)
-	public @ResponseBody PlayerListResponse getAllNearby(Player werewolf) {
+	public @ResponseBody PlayerListResponse getAllNearby(Principal principal) {
 		List<Player> playersNearby = new ArrayList<>();
 		PlayerListResponse response = new PlayerListResponse(playersNearby);
 
 		try {
-			playersNearby = gameService.getAllNearby(werewolf, playersNearby);
+			playersNearby = gameService.getAllNearby(principal.getName(), playersNearby);
 			response.setPlayerList(playersNearby);
 		} catch (NoPlayerFoundException e) {
 			e.printStackTrace();
@@ -103,17 +134,27 @@ public class HomeController {
 	}
 	
 
-	// Should I change to playerListResponse??
+	
 	@RequestMapping(value = "/players/votable", method=RequestMethod.GET)
-	public @ResponseBody List<Player> getAllVotable() {
-		List<Player> votables = gameService.getAllVotable();
-		return votables;
+	public @ResponseBody PlayerListResponse getAllVotable() {
+		List<Player> votables = new ArrayList<>();
+		PlayerListResponse response = new PlayerListResponse(votables);
+		
+		votables = gameService.getAllVotable();
+		response.setPlayerList(votables);
+		
+		if (!(votables.isEmpty())) 
+			response.setStatus = "success";
+		else
+			response.setStatus = "no votables";
+		
+		return response;
 	}
 	
 	
-	@RequestMapping(value = "/players/{id}", method=RequestMethod.POST)
-	public @ResponseBody JsonResponse castVote(@ModelAttribute Vote vote, @PathVariable String id, 
-												Principal principal) throws NoPlayerFoundException {
+	@RequestMapping(value = "/players/votes/{id}", method=RequestMethod.POST)
+	public @ResponseBody JsonResponse castVote(@PathVariable String id, Principal principal) 
+												throws NoPlayerFoundException {
 		JsonResponse response = new JsonResponse();
 		logger.info(principal.getName() + "votes for" + id);
 		gameService.votePlayer(principal.getName(), id);
@@ -122,9 +163,9 @@ public class HomeController {
 	}
 	
 
-	@RequestMapping(value = "/players/{id}", method=RequestMethod.POST)
-	public @ResponseBody JsonResponse killPlayer(@ModelAttribute Kill kill, @PathVariable String id,
-												Principal principal) throws NoPlayerFoundException {
+	@RequestMapping(value = "/players/kill/{id}", method=RequestMethod.POST)
+	public @ResponseBody JsonResponse killPlayer(@PathVariable String id, Principal principal) 
+												  throws NoPlayerFoundException {
 		JsonResponse response = new JsonResponse();
 		logger.info( id + "has been killed");
 		gameService.killPlayer(principal.getName(), id);
@@ -133,15 +174,18 @@ public class HomeController {
 	}
 	
 	
-	@RequestMapping(value ="/location", method=RequestMethod.POST)
+	@RequestMapping(value ="/location/{id}", method=RequestMethod.POST)
 	public @ResponseBody JsonResponse setLocation(@ModelAttribute GPSLocation location, Principal principal) 
 													throws NoPlayerFoundException {
 		JsonResponse response = new JsonResponse();
 		logger.info("Setting" + principal.getName() + "s location to:" + location);
-		gameService.updatePosition(principal.getName(), location);
+//		principal.getName() / "ben"
+		GPSLocation location1 = new GPSLocation(1.01, 10.1);
+		gameService.updatePosition("ben", location1);
 		response.setStatus("success");
 		return response;
 	}
+	
 	
 	@RequestMapping(value=".welcome", method=RequestMethod.GET)
 	public String home(ModelMap model){

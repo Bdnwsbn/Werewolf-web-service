@@ -8,19 +8,29 @@
 
 
 	<http>
-		<intercept-url pattern="/" 			access="ROLE_USER"/>
-		<intercept-url pattern="/players/*" access="ROLE_USER"/>
-		<intercept-url pattern="/location*" access="ROLE_USER"/>
+		<intercept-url pattern="/" 			access="ROLE_USER, ROLE_ADMIN"/>
+		<intercept-url pattern="/players/*" access="ROLE_USER, ROLE_ADMIN"/>
+		<intercept-url pattern="/location*" access="ROLE_USER, ROLE_ADMIN"/>
 		<intercept-url pattern="/admin*" 	access="ROLE_ADMIN"/>
 		<http-basic />
 	</http>
 		
-	<authentication-manager>
+ 	<authentication-manager>
 	<!-- Password Encoder to hash passwords -->
 		<authentication-provider user-service-ref="userService"> 
 			<password-encoder ref="encoder" hash="sha"/>
 		</authentication-provider>
 	</authentication-manager>
+	
+<!-- 	<authentication-manager>
+      	<authentication-provider>
+			<password-encoder hash="sha" />
+	  		 <user-service>
+	     		 <user name="ben" password="7c4a8d09ca3762af61e59520943dc26494f8941b" authorities="ROLE_ADMIN" />
+	   		</user-service>
+		</authentication-provider>
+ 	</authentication-manager> -->
+	
 	
 	<beans:bean id="encoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
 	

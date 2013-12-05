@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserDetailsService, IUserService{
 	@Autowired private IUserDAO userDao;
 	
 	@Override
-	public UserDetails loadUserByUsername(String name) throws UsernameNotFoundException {
+	public MyUser loadUserByUsername(String name) throws UsernameNotFoundException {
 		
 		MyUser u = userDao.getUserByUsername(name);
 		
@@ -43,14 +43,14 @@ public class UserServiceImpl implements UserDetailsService, IUserService{
 		
 		Collection<GrantedAuthority> authorities = new ArrayList<>();
 		authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-		MyUser u = new MyUser(id, firstname,lastname, username, password,
+		MyUser u = new MyUser(id, firstname, lastname, username, password,
 								"user.png", false, authorities);
 		userDao.createUser(u);
 	}
 	
 	@Override
 	public void removeUser(String username){
-		userDao.removeUserById(username);
+		userDao.removeUserByUsername(username);
 	}
 
 }

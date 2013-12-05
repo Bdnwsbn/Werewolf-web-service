@@ -16,15 +16,15 @@ public class Player {
 	}
 
 	// Player Constructor
-	public Player(String id, String userId, boolean isDead, double lat, 
-			double lng, boolean isWerewolf, String votedAgainst) {
+	public Player(String id, String userId, boolean isDead, boolean isWerewolf, 
+			double lat, double lng, String votedAgainst) {
 		super();
 		this.id = id;
 		this.userId = userId;
 		this.isDead = isDead;
+		this.isWerewolf = isWerewolf;
 		this.lat = lat;
 		this.lng = lng;
-		this.isWerewolf = isWerewolf;
 		this.votedAgainst = votedAgainst;
 	}
 

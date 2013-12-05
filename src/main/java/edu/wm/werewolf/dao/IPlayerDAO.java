@@ -11,6 +11,8 @@ public interface IPlayerDAO {
 	
 	public void createPlayer(Player player);
 	
+	public List<Player> getAllPlayers();
+	
 	public List<Player> getAllAlive();
 	
 	public void setDead(Player player);

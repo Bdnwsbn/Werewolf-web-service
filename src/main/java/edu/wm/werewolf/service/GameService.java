@@ -71,25 +71,30 @@ public class GameService {
 		gameDao.createGame(newGame);
 	}
 	
+	public List<Player> getAllPlayers(){
+		return playerDao.getAllPlayers();
+	}
+	
 	public List<Player> getAllAlive() {
 		return playerDao.getAllAlive();
 	}
 	
-
 	public List<Player> getAllVotable() {
 		return playerDao.getAllVotable();
 	}
 	
 
-	
-	public List<Player> getAllNearby(Player werewolf, List<Player> playersNearby) 
+// change to not player werewolf but to find player object in mongoPlayerDAO via player name	
+	public List<Player> getAllNearby(String username, List<Player> playersNearby) 
 										throws NoPlayerFoundException {
+		 MyUser u = userDao.getUserByUsername(username);
+		 Player player = playerDao.getPlayerById(u.getId());
 		
-		if (werewolf.isWerewolf()) {
+		if (player.isWerewolf()) {
 			
 			// Werewolf's Location
-			GPSLocation wwLoc = new GPSLocation(werewolf.getLat(), werewolf.getLng());
-			wwLoc = reportCurrentPosition(werewolf.getUserId(), wwLoc);
+			GPSLocation wwLoc = new GPSLocation(player.getLat(), player.getLng());
+			wwLoc = reportCurrentPosition(player.getUserId());
 			
 			// Search for nearby alive townspeople
 			List<Player> players = getAllAlive();
@@ -97,7 +102,7 @@ public class GameService {
 				if (!p.isWerewolf()) {
 					// Get current position of townsperson
 					GPSLocation pLoc = new GPSLocation(p.getLat(), p.getLng());
-					pLoc = reportCurrentPosition(p.getUserId(),pLoc);
+					pLoc = reportCurrentPosition(p.getUserId());
 					
 					// Check to see within radius of Werewolf
 					double distance = Math.sqrt( (wwLoc.getLat() - pLoc.getLat())*
@@ -118,33 +123,38 @@ public class GameService {
 
 	public void updatePosition(String username, GPSLocation location) throws NoPlayerFoundException{
 		 MyUser u = userDao.getUserByUsername(username);
-		 Player p = playerDao.getPlayerById(u.getId());
+		 String id = (String) u.getId();
+		 // **u.getId() is still large string!! not "1"
+		 Player p = playerDao.getPlayerById(id);
+		 
+//		 GPSLocation location = reportCurrentPosition(username);
 		 
 		 if (!p.isDead())
 			 playerDao.setPlayerLocation(u.getId(), location);
 	}
 	
-	public GPSLocation reportCurrentPosition(String username, GPSLocation location) throws NoPlayerFoundException{
-		updatePosition(username,location);
+	
+	public GPSLocation reportCurrentPosition(String username) throws NoPlayerFoundException{
+		GPSLocation location = new GPSLocation(); 
+//		updatePosition(username);
 		
-		 MyUser u = userDao.getUserByUsername(username);
-		 Player p = playerDao.getPlayerById(u.getId());
-		 location.setLat(p.getLat());
-		 location.setLng(p.getLng());
+		MyUser u = userDao.getUserByUsername(username);
+		Player p = playerDao.getPlayerById(u.getId());
+		location.setLat(p.getLat());
+		location.setLng(p.getLng());
 		
-		 return location;
+		return location;
 	}
 	
 
 	public Boolean canKill(Player killer, Player victim) throws NoPlayerFoundException{
-		
 		Game game = gameDao.getCurrentGame();
 		
 		if (killer.isWerewolf() && game.getIsNight()){
 			GPSLocation killerLoc = new GPSLocation(killer.getLat(), killer.getLng());
 			GPSLocation victimLoc = new GPSLocation(victim.getLat(), victim.getLng());
-			victimLoc = reportCurrentPosition(victim.getUserId(), victimLoc);
-			killerLoc = reportCurrentPosition(killer.getUserId(), killerLoc);		
+			victimLoc = reportCurrentPosition(victim.getUserId());
+			killerLoc = reportCurrentPosition(killer.getUserId());		
 			
 			double distance = Math.sqrt( (killerLoc.getLat() - victimLoc.getLat())*
 					(killerLoc.getLat() - victimLoc.getLat())
@@ -177,7 +187,7 @@ public class GameService {
 			
 			Date date = new Date();
 			Kill k = new Kill(playerKiller.getUserId(), playerVictim.getUserId(), date,
-					(float) playerKiller.getLat(), (float) playerKiller.getLng());
+					(double) playerKiller.getLat(), (double) playerKiller.getLng());
 		}
 	}
 	

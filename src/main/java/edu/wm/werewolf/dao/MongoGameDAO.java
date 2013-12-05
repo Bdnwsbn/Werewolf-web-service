@@ -28,18 +28,16 @@ public class MongoGameDAO implements IGameDAO {
 	public static final String DATABASE_NAME = "werewolf";
 	public static final String COLLECTION_NAME = "games";
 
-	@Autowired private MongoClient mongoClient;
+	@Autowired private DB db;
 
 	private DBCollection getCollection(){
-		DB db;
 		DBCollection coll = null;
 		
-		if (mongoClient == null){
+		if (db == null){
 			logger.error("No mongo instance!");
 		}
 		
 		try {
-			db = mongoClient.getDB(DATABASE_NAME);
 			coll = db.getCollection(COLLECTION_NAME);
 		}
 		catch (MongoException ex) {}

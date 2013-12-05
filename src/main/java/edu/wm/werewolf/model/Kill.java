@@ -4,38 +4,42 @@ import java.util.Date;
 
 public class Kill {
 
-	private String killerID;
-	private String victimID;
+	private String killerId;
+	private String victimId;
 	private Date timestamp;
-	private float lat;
-	private float lng;
+	private double lat;
+	private double lng;
+	
+	public Kill() {
+		
+	}
 
 	// Constructor
-	public Kill(String killerID, String victimID, Date timestamp, float lat,
-			float lng) {
+	public Kill(String killerId, String victimId, Date timestamp, double lat,
+			double lng) {
 		super();
-		this.killerID = killerID;
-		this.victimID = victimID;
+		this.killerId = killerId;
+		this.victimId = victimId;
 		this.timestamp = timestamp;
 		this.lat = lat;
 		this.lng = lng;
 	}
 
 	// Getters & Setters
-	public String getKillerID() {
-		return killerID;
+	public String getKillerId() {
+		return killerId;
 	}
 
-	public void setKillerID(String killerID) {
-		this.killerID = killerID;
+	public void setKillerId(String killerId) {
+		this.killerId = killerId;
 	}
 
-	public String getVictimID() {
-		return victimID;
+	public String getVictimId() {
+		return victimId;
 	}
 
-	public void setVictimID(String victimID) {
-		this.victimID = victimID;
+	public void setVictimId(String victimId) {
+		this.victimId = victimId;
 	}
 
 	public Date getTimestamp() {
@@ -46,20 +50,19 @@ public class Kill {
 		this.timestamp = timestamp;
 	}
 
-	public float getLat() {
+	public double getLat() {
 		return lat;
 	}
 
-	public void setLat(float lat) {
+	public void setLat(double lat) {
 		this.lat = lat;
 	}
 
-	public float getLng() {
+	public double getLng() {
 		return lng;
 	}
 
-	public void setLng(float lng) {
+	public void setLng(double lng) {
 		this.lng = lng;
 	}
-
 }

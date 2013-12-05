@@ -8,24 +8,20 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoAction;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 
 import edu.wm.werewolf.exceptions.NoUserFoundException;
 import edu.wm.werewolf.exceptions.UserAlreadyExistsException;
 import edu.wm.werewolf.model.MyUser;
-import edu.wm.werewolf.model.Player;
-import edu.wm.werewolf.model.User;
 
 public class MongoUserDAO implements IUserDAO {
 	
@@ -34,18 +30,16 @@ public class MongoUserDAO implements IUserDAO {
 	public static final String DATABASE_NAME = "werewolf";
 	public static final String COLLECTION_NAME = "users";
 
-	@Autowired private MongoClient mongoClient;
+	@Autowired private DB db;
 
 	private DBCollection getCollection(){
-		DB db;
 		DBCollection coll = null;
 		
-		if (mongoClient == null){
+		if (db == null){
 			logger.error("No mongo instance!");
 		}
 		
 		try {
-			db = mongoClient.getDB(DATABASE_NAME);
 			coll = db.getCollection(COLLECTION_NAME);
 		}
 		catch (MongoException ex) {}
@@ -55,20 +49,21 @@ public class MongoUserDAO implements IUserDAO {
 	
 
 	private MyUser convertFromObject(DBObject o) {
-		MyUser u = new MyUser(null, null, null, null, null, null, null, null);
-		
-		ObjectId streamid = (ObjectId) o.get("_id");
-		
+		ObjectId streamid = (ObjectId) o.get("_id");		
 		String id = streamid.toString();
+
+		Collection<GrantedAuthority> authorities = new ArrayList<>();
+		Boolean isAdmin = (Boolean) o.get("isAdmin");
+		if (isAdmin) {
+			authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+		}
+		else {
+			authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+		}
 		
-		u.setId(id);
-		u.setFirstName((String) o.get("firstName"));
-		u.setLastName((String) o.get("lastName"));
-		u.setUsername((String) o.get("username"));
-		u.setPassword((String) o.get("password"));
-		u.setImageURL((String) o.get("imageURL"));
-		u.setIsAdmin((Boolean) o.get("isAdmin"));
-		u.setAuthorities((Collection<GrantedAuthority>) o.get("authorities"));
+		MyUser u = new MyUser(id, (String) o.get("firstName"),(String) o.get("lastName"), (String) o.get("username"),
+				(String) o.get("password"), (String) o.get("imageURL"), (Boolean) o.get("isAdmin"),
+				authorities);
 		
 		return u;
 	}
@@ -88,10 +83,10 @@ public class MongoUserDAO implements IUserDAO {
 	}
 	
 	@Override
-	public void removeUserById(String id) {
+	public void removeUserByUsername(String username) {
 		DBCollection coll = getCollection();
 		BasicDBObject user = new BasicDBObject();
-		user.put("_id", new ObjectId(id));
+		user.put("username", username);
 		coll.remove(user);
 	}
 	
@@ -103,14 +98,20 @@ public class MongoUserDAO implements IUserDAO {
 		query.put("username", name);
 		
 		DBObject o = coll.findOne(query);
+//		DBCursor cursor = coll.find(query);
+//		while(cursor.hasNext()){
+//			DBObject o = cursor.next();
+//			MyUser u = convertFromObject(o);
+//			return u;
+//		}
 		
+
 		MyUser u = convertFromObject(o);
 		
 		return u;
 	}
 	
 
-	// Check to see if USER already exists in DB! if yes throw error
 	@Override
 	public void createUser(MyUser user) throws UserAlreadyExistsException {
 		DBCollection collection = getCollection();
@@ -125,17 +126,18 @@ public class MongoUserDAO implements IUserDAO {
 			}
 		}
 
+		String pw_hash = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+		
 		BasicDBObject userDoc = new BasicDBObject();
-		userDoc.append("id", user.getId());
-		userDoc.append("firstName", user.getFirstName());
-		userDoc.append("lastName", user.getLastName());
-		userDoc.append("username", user.getUsername());
-		userDoc.append("password", user.getPassword());
-		userDoc.append("imageURL", user.getImageURL());
-		userDoc.append("isAdmin", user.getIsAdmin());
+		userDoc.put("id", user.getId());
+		userDoc.put("firstName", user.getFirstName());
+		userDoc.put("lastName", user.getLastName());
+		userDoc.put("username", user.getUsername());
+		userDoc.put("password", pw_hash);
+		userDoc.put("imageURL", user.getImageURL());
+		userDoc.put("isAdmin", user.getIsAdmin());
 		
 		collection.insert(userDoc);
-			
 	}
 	
 	@Override
