@@ -12,7 +12,6 @@ Deployed to Heroku
 * Authentication for HTTP requests
 * HTTPs for web-forms
 * JSON response
-* 
 
 ### To do
 * Fix some funcionality
