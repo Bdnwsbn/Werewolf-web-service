@@ -10,7 +10,7 @@ Deployed to Heroku
 * RESTful service
 * Database functionality using MongoDB
 * Authentication for HTTP requests
-* HTTPs for web-forms
+* HTTPS for web-forms
 * JSON response
 
 ### To do
