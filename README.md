@@ -14,5 +14,5 @@ Deployed to Heroku
 * JSON response
 
 ### To do
-* Fix some funcionality
+* Fix some functionality
 
